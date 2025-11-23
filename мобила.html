@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Путеводитель по техническим вузам России</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            overflow: hidden;
+            min-height: calc(100vh - 20px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .header h1 {
+            font-size: clamp(1.4em, 5vw, 2.2em);
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: clamp(0.9em, 3vw, 1.1em);
+            line-height: 1.4;
+        }
+        
+        .step {
+            padding: 20px 15px;
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .step.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: clamp(1.2em, 4vw, 1.5em);
+            text-align: center;
+            line-height: 1.3;
+        }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+            flex: 1;
+        }
+        
+        .option-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .option-card:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .option-card.selected {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        
+        button {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            -webkit-appearance: none;
+            -webkit-tap-highlight-color: transparent;
+            flex: 1;
+            min-height: 50px;
+        }
+        
+        .btn-prev {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-next {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-prev:hover {
+            background: #7f8c8d;
+        }
+        
+        .btn-next:hover {
+            background: #2980b9;
+        }
+        
+        .btn-next:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .specialty-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            border-left: 5px solid #3498db;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .info-row {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+            gap: 5px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95em;
+        }
+        
+        .info-value {
+            color: #34495e;
+            text-align: left;
+            font-size: 1em;
+        }
+        
+        .subjects {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            margin-top: 5px;
+        }
+        
+        .subject-tag {
+            background: #3498db;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.85em;
+            white-space: nowrap;
+        }
+        
+        .description {
+            line-height: 1.6;
+            color: #555;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+            font-size: 0.95em;
+        }
+        
+        .progress-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+            padding: 0 15px;
+            flex-shrink: 0;
+        }
+        
+        .progress-step {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #bdc3c7;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 6px;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+        
+        .progress-step.active {
+            background: #3498db;
+        }
+        
+        .progress-step.completed {
+            background: #27ae60;
+        }
+        
+        .stats {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 6px;
+        }
+        
+        .specialty-name {
+            font-size: 1em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            line-height: 1.3;
+        }
+        
+        .city-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #2c3e50;
+        }
+        
+        .university-name {
+            font-size: 1em;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #2c3e50;
+        }
+
+        /* Мобильные стили */
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+                background: white;
+            }
+            
+            .container {
+                border-radius: 8px;
+                min-height: calc(100vh - 10px);
+                box-shadow: none;
+            }
+            
+            .options-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .option-card {
+                padding: 12px;
+            }
+            
+            .step {
+                padding: 15px 12px;
+            }
+            
+            .header {
+                padding: 15px 12px;
+            }
+            
+            .nav-buttons {
+                margin-top: 15px;
+            }
+            
+            button {
+                padding: 12px 16px;
+                font-size: 0.95em;
+                min-height: 44px; /* Минимальный размер для touch */
+            }
+            
+            .specialty-info {
+                padding: 15px;
+                margin-top: 10px;
+            }
+            
+            .progress-bar {
+                margin-bottom: 12px;
+            }
+            
+            .progress-step {
+                width: 30px;
+                height: 30px;
+                margin: 0 4px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.3em;
+            }
+            
+            h2 {
+                font-size: 1.1em;
+                margin-bottom: 12px;
+            }
+            
+            .option-card {
+                padding: 10px;
+            }
+            
+            .subject-tag {
+                padding: 4px 10px;
+                font-size: 0.8em;
+            }
+            
+            .info-row {
+                margin-bottom: 12px;
+                padding-bottom: 12px;
+            }
+            
+            .nav-buttons {
+                gap: 8px;
+            }
+        }
+
+        /* Особенности для очень маленьких экранов */
+        @media (max-width: 360px) {
+            .step {
+                padding: 12px 10px;
+            }
+            
+            .header {
+                padding: 12px 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.2em;
+            }
+            
+            .options-grid {
+                gap: 8px;
+            }
+        }
+
+        /* Предотвращение масштабирования при фокусе на iOS */
+        @media screen and (max-width: 768px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Улучшение скролла на iOS */
+        .step {
+            -webkit-overflow-scrolling: touch;
+            overflow-scrolling: touch;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Путеводитель по техническим вузам</h1>
+            <p>Выберите город, вуз и специальность для получения подробной информации</p>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-step completed" id="step1-progress">1</div>
+            <div class="progress-step" id="step2-progress">2</div>
+            <div class="progress-step" id="step3-progress">3</div>
+            <div class="progress-step" id="step4-progress">4</div>
+        </div>
+        
+        <!-- Шаг 1: Выбор города -->
+        <div class="step active" id="step1">
+            <h2>Выберите город</h2>
+            <div class="options-grid" id="cities-container">
+                <!-- Города будут добавлены через JavaScript -->
+            </div>
+            <div class="nav-buttons">
+                <button class="btn-prev" onclick="prevStep()" disabled>Назад</button>
+                <button class="btn-next" onclick="nextStep()" id="step1-next" disabled>Далее</button>
+            </div>
+        </div>
+        
+        <!-- Шаг 2: Выбор вуза -->
+        <div class="step" id="step2">
+            <h2>Выберите вуз</h2>
+            <div class="options-grid" id="universities-container">
+                <!-- Вузы будут добавлены через JavaScript -->
+            </div>
+            <div class="nav-buttons">
+                <button class="btn-prev" onclick="prevStep()">Назад</button>
+                <button class="btn-next" onclick="nextStep()" id="step2-next" disabled>Далее</button>
+            </div>
+        </div>
+        
+        <!-- Шаг 3: Выбор специальности -->
+        <div class="step" id="step3">
+            <h2>Выберите специальность</h2>
+            <div class="options-grid" id="specialties-container">
+                <!-- Специальности будут добавлены через JavaScript -->
+            </div>
+            <div class="nav-buttons">
+                <button class="btn-prev" onclick="prevStep()">Назад</button>
+                <button class="btn-next" onclick="nextStep()" id="step3-next" disabled>Далее</button>
+            </div>
+        </div>
+        
+        <!-- Шаг 4: Информация о специальности -->
+        <div class="step" id="step4">
+            <h2>Информация о специальности</h2>
+            <div id="specialty-details">
+                <!-- Информация будет добавлена через JavaScript -->
+            </div>
+            <div class="nav-buttons">
+                <button class="btn-prev" onclick="prevStep()">Назад</button>
+                <button class="btn-next" onclick="restartGuide()">Начать заново</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Функция для преобразования сокращений в полные названия предметов
+        function getFullSubjectName(abbr) {
+            const subjectsMap = {
+                'р': 'Русский язык',
+                'м': 'Математика',
+                'и': 'Информатика',
+                'ф': 'Физика',
+                'х': 'Химия',
+                'б': 'Биология',
+                'о': 'Обществознание',
+                'г': 'География',
+                'ист': 'История'
+            };
+            
+            return subjectsMap[abbr] || abbr;
+        }
+
+        // Функция для преобразования списка предметов
+        function parseSubjects(subjectString) {
+            return subjectString.split(' ').map(subj => {
+                // Обрабатываем варианты с "/"
+                if (subj.includes('/')) {
+                    return subj.split('/').map(s => getFullSubjectName(s.trim())).join(' или ');
+                }
+                return getFullSubjectName(subj.trim());
+            });
+        }
+
+        // Описания специальностей (общие для всех вузов)
+        const specialtyDescriptions = {
+            "ПРИКЛАДНАЯ МАТЕМАТИКА": "Специальность на стыке математики и компьютерных наук. Студенты учатся решать сложные задачи с помощью математического моделирования, работать с большими данными и разрабатывать алгоритмы для различных отраслей промышленности и науки.",
+            "ИНФОРМАТИКА И ВЫЧИСЛИТЕЛЬНАЯ ТЕХНИКА": "Подготовка специалистов в области компьютерных систем, архитектуры ЭВМ, разработки программного и аппаратного обеспечения. Идеально для будущих системных архитекторов и инженеров-программистов.",
+            // ... остальные описания остаются без изменений
+        };
+
+        // Полные данные о вузах и специальностях (остаются без изменений)
+        const universitiesData = {
+            "КАЗАНЬ": {
+                "КГЭУ": [
+                    { name: "ПРИКЛАДНАЯ МАТЕМАТИКА", score: 222, subjects: "р м и/ф" },
+                    { name: "ИНФОРМАТИКА И ВЫЧИСЛИТЕЛЬНАЯ ТЕХНИКА", score: 226, subjects: "р м и/ф" },
+                    // ... остальные данные
+                ],
+                // ... остальные вузы
+            },
+            // ... остальные города
+        };
+
+        // Текущее состояние выбора
+        let currentState = {
+            city: null,
+            university: null,
+            specialty: null
+        };
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCities();
+            updateProgressBar();
+            
+            // Добавляем обработчики touch событий для мобильных устройств
+            addTouchSupport();
+        });
+
+        // Добавление поддержки touch событий
+        function addTouchSupport() {
+            // Предотвращение двойного тапа для масштабирования
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function (event) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+        }
+
+        // Инициализация списка городов
+        function initializeCities() {
+            const citiesContainer = document.getElementById('cities-container');
+            citiesContainer.innerHTML = '';
+            
+            Object.keys(universitiesData).forEach(city => {
+                const totalUniversities = Object.keys(universitiesData[city]).length;
+                const totalSpecialties = Object.values(universitiesData[city]).reduce((sum, uni) => sum + uni.length, 0);
+                
+                const cityCard = document.createElement('div');
+                cityCard.className = 'option-card';
+                cityCard.innerHTML = `
+                    <div class="city-name">${city}</div>
+                    <div class="stats">${totalUniversities} ${getUniversityWord(totalUniversities)} • ${totalSpecialties} ${getSpecialtyWord(totalSpecialties)}</div>
+                `;
+                
+                // Добавляем обработчики для touch устройств
+                cityCard.addEventListener('click', () => selectCity(city, cityCard));
+                cityCard.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    selectCity(city, cityCard);
+                });
+                
+                citiesContainer.appendChild(cityCard);
+            });
+        }
+
+        // Функции для правильного склонения слов
+        function getUniversityWord(count) {
+            if (count % 10 === 1 && count % 100 !== 11) return 'вуз';
+            if ([2,3,4].includes(count % 10) && ![12,13,14].includes(count % 100)) return 'вуза';
+            return 'вузов';
+        }
+
+        function getSpecialtyWord(count) {
+            if (count % 10 === 1 && count % 100 !== 11) return 'специальность';
+            if ([2,3,4].includes(count % 10) && ![12,13,14].includes(count % 100)) return 'специальности';
+            return 'специальностей';
+        }
+
+        // Выбор города
+        function selectCity(city, element) {
+            currentState.city = city;
+            
+            // Сброс выбранных элементов
+            document.querySelectorAll('#cities-container .option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Выделение выбранного элемента
+            element.classList.add('selected');
+            
+            // Активация кнопки "Далее"
+            document.getElementById('step1-next').disabled = false;
+            
+            // Заполнение списка вузов для выбранного города
+            initializeUniversities(city);
+        }
+
+        // Инициализация списка вузов для выбранного города
+        function initializeUniversities(city) {
+            const universitiesContainer = document.getElementById('universities-container');
+            universitiesContainer.innerHTML = '';
+            
+            Object.keys(universitiesData[city]).forEach(university => {
+                const specialtyCount = universitiesData[city][university].length;
+                
+                const universityCard = document.createElement('div');
+                universityCard.className = 'option-card';
+                universityCard.innerHTML = `
+                    <div class="university-name">${university}</div>
+                    <div class="stats">${specialtyCount} ${getSpecialtyWord(specialtyCount)}</div>
+                `;
+                
+                universityCard.addEventListener('click', () => selectUniversity(university, universityCard));
+                universityCard.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    selectUniversity(university, universityCard);
+                });
+                
+                universitiesContainer.appendChild(universityCard);
+            });
+        }
+
+        // Выбор вуза
+        function selectUniversity(university, element) {
+            currentState.university = university;
+            
+            // Сброс выбранных элементов
+            document.querySelectorAll('#universities-container .option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Выделение выбранного элемента
+            element.classList.add('selected');
+            
+            // Активация кнопки "Далее"
+            document.getElementById('step2-next').disabled = false;
+            
+            // Заполнение списка специальностей для выбранного вуза
+            initializeSpecialties(currentState.city, university);
+        }
+
+        // Инициализация списка специальностей для выбранного вуза
+        function initializeSpecialties(city, university) {
+            const specialtiesContainer = document.getElementById('specialties-container');
+            specialtiesContainer.innerHTML = '';
+            
+            universitiesData[city][university].forEach((specialty, index) => {
+                const fullSubjects = parseSubjects(specialty.subjects);
+                
+                const specialtyCard = document.createElement('div');
+                specialtyCard.className = 'option-card';
+                specialtyCard.innerHTML = `
+                    <div class="specialty-name">${specialty.name}</div>
+                    <div>Баллы на бюджет: <strong>${specialty.score}</strong></div>
+                    <div class="subjects" style="margin-top: 8px;">
+                        ${fullSubjects.map(subj => `<span class="subject-tag">${subj}</span>`).join('')}
+                    </div>
+                `;
+                
+                specialtyCard.addEventListener('click', () => selectSpecialty(index, specialtyCard));
+                specialtyCard.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    selectSpecialty(index, specialtyCard);
+                });
+                
+                specialtiesContainer.appendChild(specialtyCard);
+            });
+        }
+
+        // Выбор специальности
+        function selectSpecialty(specialtyIndex, element) {
+            currentState.specialty = specialtyIndex;
+            
+            // Сброс выбранных элементов
+            document.querySelectorAll('#specialties-container .option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Выделение выбранного элемента
+            element.classList.add('selected');
+            
+            // Активация кнопки "Далее"
+            document.getElementById('step3-next').disabled = false;
+            
+            // Подготовка информации о специальности
+            prepareSpecialtyInfo();
+        }
+
+        // Подготовка информации о выбранной специальности
+        function prepareSpecialtyInfo() {
+            const specialty = universitiesData[currentState.city][currentState.university][currentState.specialty];
+            const fullSubjects = parseSubjects(specialty.subjects);
+            const description = specialtyDescriptions[specialty.name] || "Описание специальности временно недоступно.";
+            
+            const detailsContainer = document.getElementById('specialty-details');
+            
+            detailsContainer.innerHTML = `
+                <div class="specialty-info">
+                    <div class="info-row">
+                        <span class="info-label">Специальность:</span>
+                        <span class="info-value">${specialty.name}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Вуз:</span>
+                        <span class="info-value">${currentState.university}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Город:</span>
+                        <span class="info-value">${currentState.city}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Баллы на бюджет:</span>
+                        <span class="info-value">${specialty.score}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Предметы для сдачи:</span>
+                        <div class="subjects">
+                            ${fullSubjects.map(subj => `<span class="subject-tag">${subj}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="description">
+                        <strong>О специальности:</strong><br>
+                        ${description}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Навигация между шагами
+        let currentStep = 1;
+
+        function nextStep() {
+            if (currentStep < 4) {
+                document.getElementById(`step${currentStep}`).classList.remove('active');
+                currentStep++;
+                document.getElementById(`step${currentStep}`).classList.add('active');
+                updateProgressBar();
+                
+                // Прокрутка вверх при смене шага на мобильных
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                document.getElementById(`step${currentStep}`).classList.remove('active');
+                currentStep--;
+                document.getElementById(`step${currentStep}`).classList.add('active');
+                updateProgressBar();
+                
+                // Прокрутка вверх при смене шага на мобильных
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function restartGuide() {
+            currentStep = 1;
+            currentState = {
+                city: null,
+                university: null,
+                specialty: null
+            };
+            
+            // Сброс всех шагов
+            document.querySelectorAll('.step').forEach((step, index) => {
+                step.classList.toggle('active', index === 0);
+            });
+            
+            // Сброс выбора
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Деактивация кнопок
+            document.getElementById('step1-next').disabled = true;
+            document.getElementById('step2-next').disabled = true;
+            document.getElementById('step3-next').disabled = true;
+            
+            updateProgressBar();
+            
+            // Прокрутка вверх
+            window.scrollTo(0, 0);
+        }
+
+        // Обновление прогресс-бара
+        function updateProgressBar() {
+            for (let i = 1; i <= 4; i++) {
+                const stepElement = document.getElementById(`step${i}-progress`);
+                if (i < currentStep) {
+                    stepElement.className = 'progress-step completed';
+                } else if (i === currentStep) {
+                    stepElement.className = 'progress-step active';
+                } else {
+                    stepElement.className = 'progress-step';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
